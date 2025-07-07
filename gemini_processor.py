@@ -1,21 +1,25 @@
 import google.generativeai as genai
 import json
 import os
+import configparser
 
 
 def configurar_ia():
-    """Configura la API de Gemini usando la variable de entorno GEMINI_API_KEY."""
+    """Configura la API de Gemini usando la API key del archivo config.ini."""
     try:
-        api_key = os.environ.get('GEMINI_API_KEY')
-        if not api_key:
-            raise ValueError("La variable de entorno GEMINI_API_KEY no está configurada.")
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        
+        api_key = config.get('GEMINI', 'API_KEY')
+        if not api_key or api_key == 'tu_api_key_aqui':
+            raise ValueError("La API key no está configurada en config.ini")
         
         genai.configure(api_key=api_key)
         print("[INFO] Configuración de la IA completada con éxito.")
         return True
     except Exception as e:
         print(f"[ERROR] Fallo al configurar la IA: {e}")
-        print("Asegúrate de haber configurado la variable de entorno 'GEMINI_API_KEY'.")
+        print("Asegúrate de haber configurado tu API key en config.ini")
         return False
 
 def analizar_comentario_individual(comentario: str) -> dict:
