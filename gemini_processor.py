@@ -1,88 +1,74 @@
 import google.generativeai as genai
 import json
-import os
 import configparser
+import time
 
 
 def configurar_ia():
-    """Configura la API de Gemini usando la API key del archivo config.ini."""
     try:
         config = configparser.ConfigParser()
         config.read('config.ini')
         
         api_key = config.get('GEMINI', 'API_KEY')
         if not api_key or api_key == 'tu_api_key_aqui':
-            raise ValueError("La API key no está configurada en config.ini")
+            raise ValueError("A API key não está configurada no config.ini")
         
         genai.configure(api_key=api_key)
-        print("[INFO] Configuración de la IA completada con éxito.")
+        print("[INFO] Configuração da IA concluída com sucesso.")
         return True
     except Exception as e:
-        print(f"[ERROR] Fallo al configurar la IA: {e}")
-        print("Asegúrate de haber configurado tu API key en config.ini")
+        print(f"[ERRO] Falha ao configurar a IA: {e}")
         return False
 
-def analizar_comentario_individual(comentario: str) -> dict:
-    """
-    Analiza un único comentario de cliente usando la API de Gemini.
-    
-    Args:
-        comentario: El texto del comentario a analizar.
-    
-    Returns:
-        Diccionario con 'sentimiento', 'categoria' y 'resumen_corto'.
-    """
+def analisar_comentario_individual(comentario: str) -> dict:
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     prompt = f"""
-    Analiza el siguiente comentario de un cliente. Devuelve tu respuesta únicamente en formato JSON válido con las claves "sentimiento", "categoria" y "resumen_corto".
+    Analise o seguinte comentário de um cliente. Retorne apenas em formato JSON válido com as chaves "sentimento", "categoria" e "resumo_curto".
 
-    - La clave "sentimiento" debe tener uno de los siguientes valores: 'Positivo', 'Negativo' o 'Neutro'.
-    - La clave "categoria" debe tener uno de los siguientes valores: 'Bug', 'Sugerencia', 'UI/UX' o 'Soporte'.
-    - La clave "resumen_corto" debe ser un resumen de una sola frase del punto principal del comentario.
+    - "sentimento": 'Positivo', 'Negativo' ou 'Neutro'
+    - "categoria": 'Bug', 'Sugestão', 'UI/UX' ou 'Suporte'  
+    - "resumo_curto": uma frase resumindo o ponto principal
 
-    No incluyas ```json ni ``` al principio o al final de tu respuesta.
-
-    Comentario: "{comentario}"
+    Comentário: "{comentario}"
     """
 
-    try:
-        response = model.generate_content(prompt)
-        cleaned_response = response.text.strip().replace("```json", "").replace("```", "")
-        return json.loads(cleaned_response)
-        
-    except Exception as e:
-        print(f"\n[ERROR] No se pudo analizar el comentario: '{comentario[:50]}...'")
-        print(f"  Razón: {e}")
-        return {
-            "sentimiento": "Error",
-            "categoria": "Error",
-            "resumen_corto": "No se pudo analizar el comentario."
-        }
+    for tentativa in range(3):
+        try:
+            response = model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=150
+                )
+            )
+            texto_limpo = response.text.strip().replace("```json", "").replace("```", "")
+            return json.loads(texto_limpo)
+            
+        except Exception as e:
+            if tentativa < 2:
+                time.sleep(0.3)
+                continue
+            else:
+                return {
+                    "sentimento": "Erro",
+                    "categoria": "Erro",
+                    "resumo_curto": "Erro no processamento."
+                }
 
-def generar_resumen_ejecutivo(estadisticas: str) -> str:
-    """
-    Genera un resumen ejecutivo basado en las estadísticas agregadas.
-    
-    Args:
-        estadisticas: String formateado con las estadísticas del feedback.
-    
-    Returns:
-        Párrafo con el resumen ejecutivo.
-    """
+def gerar_resumo_executivo(estatisticas: str) -> str:
     model = genai.GenerativeModel('gemini-1.5-flash')
 
     prompt = f"""
-    Actúa como un Analista de Producto senior. Basado en las siguientes estadísticas y resúmenes de feedback de clientes, escribe un resumen ejecutivo de 3 a 5 frases.
-    Destaca la tendencia más importante y el problema más urgente a resolver para el equipo de producto.
-
-    Estadísticas:
-    {estadisticas}
+    Como Analista de Produto, escreva um resumo executivo de 3-4 frases baseado nas estatísticas:
+    
+    {estatisticas}
+    
+    Destaque a tendência principal e problema mais urgente.
     """
 
     try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        print(f"\n[ERROR] No se pudo generar el resumen ejecutivo: {e}")
-        return "No se pudo generar el resumen ejecutivo."
+        return "Erro ao gerar resumo executivo."
