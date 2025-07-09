@@ -1,44 +1,76 @@
-# Feedback Analyzer
+# 🚀 Analisador de Feedback para Produtos Web
 
-Analizador de feedback de clientes usando IA de Google Gemini.
+Sistema completo para extrair e analisar comentários de produtos web usando IA.
 
-## Configuración
+## ✨ Funcionalidades
 
-1. Copia el archivo de ejemplo:
-   ```bash
-   cp config.ini.example config.ini
-   ```
+- 🌐 **Extração automática** de comentários de URLs de produtos
+- 🧠 **Análise por IA** usando Google Gemini
+- 📊 **Relatórios detalhados** com insights executivos
+- ⚡ **Processamento paralelo** super rápido
+- 📁 **Múltiplos formatos** de entrada (URL, CSV, TXT, JSON)
 
-2. Edita `config.ini` y coloca tu API key de Google Gemini:
-   ```ini
-   [GEMINI]
-   API_KEY = tu_api_key_real_aqui
-   ```
+## 🎯 Plataformas Suportadas
 
-3. Instala las dependencias:
-   ```bash
-   pip install google-generativeai pandas
-   ```
+- **Amazon** (produtos)
+- **MercadoLivre** (produtos) ✅ Testado
+- **Google Play** (apps)
+- **App Store** (apps)
+- **Sites genéricos** (com comentários)
 
-## Uso
+## 🚀 Como Usar
 
-```python
-from gemini_processor import configurar_ia, analizar_comentario_individual
+### 1. Configuração
 
-# Configurar la IA
-if configurar_ia():
-    # Analizar un comentario
-    resultado = analizar_comentario_individual("Me encanta la app!")
-    print(resultado)
+```bash
+# Ativar ambiente virtual
+source venv/bin/activate  # ou venv/Scripts/activate no Windows
+
+# Instalar dependências (já instaladas)
+pip install selenium webdriver-manager beautifulsoup4 requests google-generativeai
 ```
 
-## Archivos
+### 2. Configurar API Gemini
 
-- `gemini_processor.py` - Funciones para procesar feedback con IA
-- `feedback.csv` - Datos de ejemplo
-- `config.ini.example` - Plantilla de configuración
-- `main.py` - Archivo principal (por implementar)
+Edite `config.ini`:
+```ini
+[GEMINI]
+API_KEY = sua_api_key_aqui
+```
 
-## Seguridad
+### 3. Executar
 
-⚠️ **IMPORTANTE**: Nunca subas tu `config.ini` real al repositorio. El archivo está excluido en `.gitignore`.
+```bash
+# Análise completa (com IA)
+python main.py
+
+# Demo (apenas extração, sem IA)
+python demo_extrator.py
+```
+
+## 📖 Exemplo de Uso
+
+1. **Execute:** `python main.py`
+2. **Escolha:** `1. 🌐 Extrair de URL`
+3. **Cole a URL** do produto (ex: MercadoLivre, Amazon)
+4. **Aguarde** a extração e análise
+5. **Veja o relatório** gerado automaticamente
+
+## ⚠️ Limitações da API Gratuita
+
+A API gratuita do Gemini tem limite de **50 requests/dia**. Se atingir o limite:
+
+### Soluções:
+1. **Aguarde 24h** para renovar a cota
+2. **Use o demo** para apenas extrair comentários
+3. **Upgrade** para plano pago do Gemini
+4. **Processe em lotes** menores
+
+## 📊 O que Você Recebe
+
+- **Sentimentos:** Positivo/Negativo/Neutro
+- **Categorias:** Bug/Sugerência/UI-UX/Suporte
+- **Resumo executivo** gerado por IA
+- **Relatório Markdown** completo
+- **Estatísticas** detalhadas
+

@@ -24,11 +24,13 @@ def analisar_comentario_individual(comentario: str) -> dict:
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     prompt = f"""
-    Analise o seguinte comentário de um cliente. Retorne apenas em formato JSON válido com as chaves "sentimento", "categoria" e "resumo_curto".
+    Analise este comentário de cliente e responda APENAS com JSON válido:
 
-    - "sentimento": 'Positivo', 'Negativo' ou 'Neutro'
-    - "categoria": 'Bug', 'Sugestão', 'UI/UX' ou 'Suporte'  
-    - "resumo_curto": uma frase resumindo o ponto principal
+    {{
+      "sentimento": "Positivo" ou "Negativo" ou "Neutro",
+      "categoria": "Bug" ou "Sugestão" ou "UI/UX" ou "Suporte",
+      "resumo_curto": "resumo em uma frase"
+    }}
 
     Comentário: "{comentario}"
     """
@@ -39,17 +41,35 @@ def analisar_comentario_individual(comentario: str) -> dict:
                 prompt,
                 generation_config=genai.types.GenerationConfig(
                     temperature=0.1,
-                    max_output_tokens=150
+                    max_output_tokens=100
                 )
             )
-            texto_limpo = response.text.strip().replace("```json", "").replace("```", "")
-            return json.loads(texto_limpo)
+            texto = response.text.strip()
+            
+            # Limpar resposta mais agressivamente
+            if "```" in texto:
+                texto = texto.split("```")[1] if "```json" in texto else texto.split("```")[0]
+            
+            # Remover texto antes e depois do JSON
+            inicio = texto.find('{')
+            fim = texto.rfind('}') + 1
+            if inicio != -1 and fim != 0:
+                texto = texto[inicio:fim]
+            
+            resultado = json.loads(texto)
+            
+            # Validar campos obrigatórios
+            if all(key in resultado for key in ['sentimento', 'categoria', 'resumo_curto']):
+                return resultado
+            else:
+                raise ValueError("Campos obrigatórios ausentes")
             
         except Exception as e:
             if tentativa < 2:
-                time.sleep(0.3)
+                time.sleep(0.5)
                 continue
             else:
+                print(f"[ERRO] Falha ao processar: '{comentario[:30]}...' - {e}")
                 return {
                     "sentimento": "Erro",
                     "categoria": "Erro",
