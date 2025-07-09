@@ -1,0 +1,1 @@
+# Feedback Analyzer - Pacote Principal

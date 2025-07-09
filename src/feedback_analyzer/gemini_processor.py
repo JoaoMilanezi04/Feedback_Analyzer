@@ -2,12 +2,29 @@ import google.generativeai as genai
 import json
 import configparser
 import time
+import os
 
 
 def configurar_ia():
     try:
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        
+        # Tentar carregar config.ini da pasta raiz do projeto
+        config_paths = [
+            'config.ini',  # Pasta atual
+            '../../config.ini',  # Subindo duas pastas (de src/feedback_analyzer)
+            os.path.join(os.path.dirname(__file__), '../../config.ini')  # Caminho absoluto
+        ]
+        
+        config_loaded = False
+        for config_path in config_paths:
+            if os.path.exists(config_path):
+                config.read(config_path)
+                config_loaded = True
+                break
+        
+        if not config_loaded:
+            raise ValueError("Arquivo config.ini não encontrado")
         
         api_key = config.get('GEMINI', 'API_KEY')
         if not api_key or api_key == 'tu_api_key_aqui':
